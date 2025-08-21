@@ -1,0 +1,25 @@
+MCU     = attiny13
+F_CPU   = 1200000UL
+TARGET  = main
+CC      = avr-gcc
+OBJCOPY = avr-objcopy
+CFLAGS  = -mmcu=$(MCU) -DF_CPU=$(F_CPU) -Os -Wall -Wextra
+LDFLAGS = -mmcu=$(MCU)
+
+all: $(TARGET).hex
+
+$(TARGET).o: $(TARGET).c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(TARGET).elf: $(TARGET).o
+	$(CC) $(LDFLAGS) $< -o $@
+
+$(TARGET).hex: $(TARGET).elf
+	$(OBJCOPY) -O ihex -R .eeprom $< $@
+
+flash: $(TARGET).hex
+
+	avrdude -p t13 -c usbasp -U flash:w:$(TARGET).hex
+
+clean:
+	rm -f *.o *.elf *.hex
